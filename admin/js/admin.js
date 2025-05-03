@@ -102,16 +102,8 @@ const galleryAPI = {
         "Authorization": `Bearer ${authAPI.getToken()}`
       }
     });
-    return handleAPIResponse(response, "Failed to fetch gallery items");
-  },
-  
-  getById: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/gallery/${id}`, {
-      headers: {
-        "Authorization": `Bearer ${authAPI.getToken()}`
-      }
-    });
-    return handleAPIResponse(response, "Failed to fetch gallery item");
+    if (!response.ok) throw new Error("Failed to fetch gallery items");
+    return response.json();
   },
   
   create: async (formData) => {
@@ -120,29 +112,20 @@ const galleryAPI = {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${authAPI.getToken()}`
+          // Don't set Content-Type for FormData
         },
         body: formData
       });
-      return handleAPIResponse(response, "Failed to create gallery item");
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || "Failed to create gallery item");
+      }
+      
+      return response.json();
     } catch (error) {
       console.error("Gallery creation error:", error);
-      throw new Error("Failed to create gallery item: " + error.message);
-    }
-  },
-  
-  update: async (id, formData) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/gallery/${id}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${authAPI.getToken()}`
-        },
-        body: formData
-      });
-      return handleAPIResponse(response, "Failed to update gallery item");
-    } catch (error) {
-      console.error("Gallery update error:", error);
-      throw new Error("Failed to update gallery item: " + error.message);
+      throw error;
     }
   },
   
@@ -153,7 +136,8 @@ const galleryAPI = {
         "Authorization": `Bearer ${authAPI.getToken()}`
       }
     });
-    return handleAPIResponse(response, "Failed to delete gallery item");
+    if (!response.ok) throw new Error("Failed to delete gallery item");
+    return response.json();
   }
 };
 
