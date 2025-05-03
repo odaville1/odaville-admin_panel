@@ -1,17 +1,5 @@
-// This is a modified version of the admin.js file to fix connection issues
-// Load configuration
-const loadScript = document.createElement('script');
-loadScript.src = '/admin/js/config.js';
-document.head.appendChild(loadScript);
-
-// Wait for config to load
-setTimeout(() => {
-    // Use the global API_BASE_URL from config
-    const API_BASE_URL = window.API_BASE_URL || "http://localhost:5000/api";
-    console.log('Using API URL:', API_BASE_URL);
-}, 100);
-
-
+// API Configuration
+const API_BASE_URL = "https://www.odaville.com/api";
 
 // Utility function for handling API errors
 async function handleAPIResponse(response, errorMessage) {
@@ -382,25 +370,6 @@ async function loadProducts() {
 // Add periodic authentication check
 setInterval(checkAuth, 5 * 60 * 1000); // Check every 5 minutes
 
-// Initialize admin panel
-document.addEventListener("DOMContentLoaded", () => {
-  if (!checkAuth()) return;
-  
-  // Initialize all admin panel features
-  initializeProductManagement();
-  initializeBlogManagement();
-  initializeOrderManagement();
-  
-  // Add logout handler
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      authAPI.logout();
-    });
-  }
-});
-
 document.addEventListener("DOMContentLoaded", async () => {
   // Check if user is authenticated
   if (!authAPI.isAuthenticated()) {
@@ -689,40 +658,42 @@ function initBlogManagement() {
   const addBlogBtn = document.getElementById("add-blog-btn");
   const blogForm = document.getElementById("blog-post-form");
 
-  // Initialize TinyMCE
-  tinymce.init({
-    selector: '#blog-content',
-    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
-    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
-    images_upload_url: `${API_BASE_URL}/blog/upload-content-image`,
-    images_upload_handler: async function (blobInfo, progress) {
-      try {
-        const formData = new FormData();
-        formData.append('image', blobInfo.blob(), blobInfo.filename());
+  // Initialize TinyMCE if it's loaded
+  if (typeof tinymce !== 'undefined') {
+    tinymce.init({
+      selector: '#blog-content',
+      plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+      images_upload_url: `${API_BASE_URL}/blog/upload-content-image`,
+      images_upload_handler: async function (blobInfo, progress) {
+        try {
+          const formData = new FormData();
+          formData.append('image', blobInfo.blob(), blobInfo.filename());
 
-        const response = await fetch(`${API_BASE_URL}/blog/upload-content-image`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${authAPI.getToken()}`
-          },
-          body: formData
-        });
+          const response = await fetch(`${API_BASE_URL}/blog/upload-content-image`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authAPI.getToken()}`
+            },
+            body: formData
+          });
 
-        if (!response.ok) {
-          throw new Error('Image upload failed');
+          if (!response.ok) {
+            throw new Error('Image upload failed');
+          }
+
+          const data = await response.json();
+          return data.url;
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          throw error;
         }
-
-        const data = await response.json();
-        return data.url;
-      } catch (error) {
-        console.error('Error uploading image:', error);
-        throw error;
-      }
-    },
-    height: 500,
-    menubar: true,
-    automatic_uploads: true
-  });
+      },
+      height: 500,
+      menubar: true,
+      automatic_uploads: true
+    });
+  }
 
   // Load existing blog posts with error handling
   loadBlogPosts().catch((error) => {
@@ -828,8 +799,10 @@ function resetBlogForm() {
   document.getElementById("blog-image-preview").style.display = "none";
   document.getElementById("blog-image-preview").src = "";
   
-  // Reset TinyMCE content
-  tinymce.get('blog-content').setContent('');
+  // Reset TinyMCE content if available
+  if (typeof tinymce !== 'undefined' && tinymce.get('blog-content')) {
+    tinymce.get('blog-content').setContent('');
+  }
 
   // Scroll back to blog list
   document
@@ -945,7 +918,6 @@ async function loadGalleryItems() {
       grid.innerHTML = '<div class="no-items">No gallery items found</div>';
       return;
     }
-
     grid.innerHTML = gallery
       .map(
         (item) => `
@@ -1146,8 +1118,10 @@ window.handleEditBlog = async (id) => {
     // Set form values
     document.getElementById("blog-id").value = id;
     document.getElementById("blog-title").value = blog.title || "";
-    // Set TinyMCE content
-    tinymce.get('blog-content').setContent(blog.content || "");
+    // Set TinyMCE content if available
+    if (typeof tinymce !== 'undefined' && tinymce.get('blog-content')) {
+      tinymce.get('blog-content').setContent(blog.content || "");
+    }
     document.getElementById("blog-author").value = blog.author || "";
 
     const statusField = document.getElementById("blog-status");
@@ -1326,4 +1300,7 @@ window.handleDeleteProduct = async (id) => {
   }
 };
 
-
+// Global edit handlers
+window.handleBlogEdit = window.handleEditBlog;
+window.handleGalleryEdit = window.handleEditGallery;
+window.handleProductEdit = window.handleEditProduct;
