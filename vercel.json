@@ -1,31 +1,27 @@
 {
-    "rewrites": [
+    "version": 2,
+    "buildCommand": false,
+    "outputDirectory": ".",
+    "routes": [
       {
-        "source": "/",
-        "destination": "/index.html"
+        "src": "/",
+        "dest": "/index.html"
       },
       {
-        "source": "/admin",
-        "destination": "/admin/admin-login.html"
+        "src": "/admin/?",
+        "dest": "/admin/admin-login.html"
       },
       {
-        "source": "/admin/login",
-        "destination": "/admin/admin-login.html"
+        "src": "/admin/login",
+        "dest": "/admin/admin-login.html"
       },
       {
-        "source": "/admin/panel",
-        "destination": "/admin/admin-panel.html"
-      }
-    ],
-    "headers": [
+        "src": "/admin/panel",
+        "dest": "/admin/admin-panel.html"
+      },
       {
-        "source": "/api/(.*)",
-        "headers": [
-          { "key": "Access-Control-Allow-Credentials", "value": "true" },
-          { "key": "Access-Control-Allow-Origin", "value": "*" },
-          { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-          { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
-        ]
+        "src": "/(.*)",
+        "dest": "/$1"
       }
     ]
   }

@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "Admin panel for Odaville website",
     "scripts": {
-      "start": "echo 'This is a static site - no build required'",
+      "start": "echo 'This is a static site'",
       "build": "echo 'No build step required'"
     },
     "author": "Odaville",
