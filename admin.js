@@ -919,11 +919,11 @@ async function loadGalleryItems() {
       return;
     }
     grid.innerHTML = gallery
-      .map(
-        (item) => `
+    .map(
+      (item) => `
       <div class="gallery-item">
         <div class="gallery-item-image">
-          <img src="${item.imageUrl}" alt="${item.title}" onerror="this.src='./images/fallback.jpg'">
+          <img src="${item.imageUrl}" alt="${item.title}" onerror="this.src='/images/fallback.jpg'">
         </div>
         <div class="gallery-item-content">
           <h3 class="gallery-item-title">${item.title}</h3>
